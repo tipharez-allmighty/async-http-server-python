@@ -13,7 +13,9 @@ def main():
         ),
         reuse_port=True
     )
-    server_socket.accept() # wait for client
+    server_socket.accept()[0].sendall(
+        b'HTTP/1.1 200 OK\r\n\r\n'
+        ) # wait for client
 
 
 if __name__ == "__main__":
