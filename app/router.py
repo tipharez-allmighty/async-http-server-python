@@ -44,7 +44,7 @@ class Router:
             response = self._routerLookup(
                 path=current_path, method=method, parameter=current_parameter
             )
-        return response.buildBytes() if response else b"HTTP/1.1 404 Not Found\r\n"
+        return response.buildBytes() if response else b"HTTP/1.1 404 Not Found\r\n\r\n"
 
     def get(self, path: str):
         path = Path(path=path)
