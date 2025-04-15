@@ -23,5 +23,5 @@ class HttpParser:
             requset_line_list = self.request_line.split(" ")
             self.method, self.path, self.http_version = requset_line_list
         except Exception as e:
-            print("Malformed Request line")
+            print(f"Malformed Request line. Error: {str(e)}")
             self.method, self.path, self.http_version = None, None, None

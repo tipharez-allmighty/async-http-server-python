@@ -1,37 +1,7 @@
-from _collections_abc import Callable
-from dataclasses import dataclass
-from enum import Enum
+from queue import Queue
 
+from app.httptypes import Path, Response, MethodHandler
 
-class HttpMethod(Enum):
-    GET = "GET"
-    POST = "POST"
-    PUT = "PUT"
-    DELETE = "DELETE"
-    PATCH = "PATCH"
-
-
-@dataclass
-class MethodHandler:
-    method: HttpMethod
-    handler: callable
-
-    def __post_init__(self):
-        if not isinstance(self.handler, Callable):
-            raise ValueError(f"{self.handler} is not callable")
-        try:
-            HttpMethod[self.method]
-        except:
-            raise ValueError(f"{self.method} is not valid http method")
-
-
-@dataclass(frozen=True)
-class Path:
-    path: str
-
-    def __post_init__(self):
-        if not isinstance(self.path, str):
-            raise ValueError(f"{self.path} should be a string")
 
 class Router:
     def __init__(self):
@@ -41,13 +11,40 @@ class Router:
     def route_map(self):
         return self.__route_map
 
-    def resolve(self, path: str, method: str, http_version: str):
-        path = Path(path=path)
-        
+    def _pathQueue(self, path: Path):
+        queue = Queue()
+        splited_path = path.path.split("/")[::-1]
+        splited_path.pop()
+        for parameter in splited_path:
+            query_path = Path(
+                path=path.path.replace(parameter, "{query}"),
+            )
+            queue.put((query_path, parameter))
+        return queue
+
+    def _routerLookup(self, path: Path, method: str, parameter: str | None = None):
         if path in self.__route_map:
-            return self.route_map[path][0].handler()
-        else:
-            return b"HTTP/1.1 404 Not Found\r\n\r\n"
+            for method_handler in self.__route_map[path]:
+                if method_handler.method == method:
+                    return (
+                        method_handler.handler()
+                        if not parameter
+                        else method_handler.handler(parameter)
+                    )
+
+    def resolve(self, path: str, method: str, http_version: str):
+        path = Path(path)
+        response = self._routerLookup(
+            path=path,
+            method=method,
+        )
+        path_queue = self._pathQueue(path=path)
+        while not response and not path_queue.empty():
+            current_path, current_parameter = path_queue.get()
+            response = self._routerLookup(
+                path=current_path, method=method, parameter=current_parameter
+            )
+        return response.buildBytes() if response else b"HTTP/1.1 404 Not Found\r\n"
 
     def get(self, path: str):
         path = Path(path=path)
@@ -68,4 +65,9 @@ router = Router()
 
 @router.get(path="/")
 def getHome():
-    return b"HTTP/1.1 200 OK\r\n\r\n"
+    return Response()
+
+
+@router.get(path="/echo/{query}")
+def getAbc(query: str):
+    return Response(data=query)
