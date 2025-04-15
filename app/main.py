@@ -8,7 +8,7 @@ def main():
     print("Logs from your program will appear here!")
 
     server_socket = socket.create_server(("localhost", 4221), reuse_port=True)
-    conn, addr = server_socket.accept()
+    conn, addr = server_socket.listen()
     recieved_bytes = conn.recv(1024)
     parsed_request = HttpRequest(recieved_bytes=recieved_bytes)
     response = router.resolve(parsed_request)
