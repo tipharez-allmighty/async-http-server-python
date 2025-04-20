@@ -11,6 +11,9 @@ class HttpRequest:
         self._parseRequestLine()
         self._parseHeaders()
 
+    def __repr__(self):
+        return self.request_string
+
     def _parseData(self):
         if not self.request_string:
             return None
@@ -26,13 +29,13 @@ class HttpRequest:
         except Exception as e:
             print(f"Malformed Request line. Error: {str(e)}")
             self.method, self.path, self.http_version = None, None, None
-    
+
     def _parseHeaders(self):
         headers_dict = dict()
         if not self.headers:
             return None
         for header in self.headers:
             if isinstance(header, str) and len(header) != 0:
-                header = header.split(':', maxsplit=1)
-                headers_dict[header[0]] = header[1].strip()
+                header = header.split(":", maxsplit=1)
+                headers_dict[header[0].lower()] = header[1].strip()
         self.headers = headers_dict

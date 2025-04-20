@@ -1,37 +1,32 @@
-import socket  # noqa: F401
-import time
-import threading
 import asyncio
-from app.router import router
-from app.requestmanager import RequestManager
+from app.routes import router
+from app.context_managers import AsyncRequestManager
+from app.httpparser import HttpRequest
 
-def handleRequest(conn):
-    print(f"Handling request in thread: {threading.current_thread().name}", flush=True)
-    with RequestManager(conn) as rq:
-        response = router.resolve(rq.request)
-        rq.connection.sendall(response)
-        
-def main():
-    print("Logs from your program will appear here!")
 
-    server_socket = socket.create_server(("localhost", 4221), reuse_port=True)
-    print('Server is running on port: 4221')
-    try:
+async def handleRequest(reader, writer):
+    async with AsyncRequestManager(reader, writer) as arm:
         while True:
-            conn, addr = server_socket.accept()
-            client_thread = threading.Thread(
-                target=handleRequest,
-                args=[conn]
-            )
-            client_thread.start()
-            # await asyncio.to_thread(handleRequest, conn)
-    except KeyboardInterrupt:
-        print('\nServer is shutting down')
-    finally:
-        server_socket.close()
-        print('\nServer has been shut down')
+            recieved_bytes = await arm.reader.read(1024)
+            if not recieved_bytes:
+                break
+            request = HttpRequest(recieved_bytes=recieved_bytes)
+            response = await router.resolve(request)
+            arm.writer.write(response)
+            await arm.writer.drain()
+
+
+async def main():
+    print("Logs will appear here!")
+    server = await asyncio.start_server(handleRequest, "localhost", 4221)
+    async with server:
+        await server.serve_forever()
 
 
 if __name__ == "__main__":
-    # asyncio.run(main())
-    main()
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nServer is shutting down")
+    finally:
+        print("\nServer is shut down")
