@@ -1,20 +1,21 @@
 import os
 import sys
 
-from app.httptypes import Response, ResponseType
-from app.httpparser import HttpRequest
+from app.httptypes import Response, ResponseType, Status
+from app.httpparser import Request
 from app.router import Router
-from app.status import status
+from app.context_managers import AsyncFileManager
 
 router = Router()
 
+
 @router.get(path="/")
-async def getHome(reqeust: HttpRequest):
+async def getHome(reqeust: Request):
     return Response()
 
 
 @router.get(path="/user-agent")
-async def getUserAgent(reqeust: HttpRequest):
+async def getUserAgent(reqeust: Request):
     if reqeust.headers.get("user-agent"):
         return Response(data=reqeust.headers["user-agent"])
     else:
@@ -22,22 +23,30 @@ async def getUserAgent(reqeust: HttpRequest):
 
 
 @router.get(path="/echo/{query}")
-async def getAbc(reqeust: HttpRequest, query: str):
+async def getAbc(reqeust: Request, query: str):
     return Response(data=query)
 
+
 @router.get(path="/files/{query}")
-async def getFile(request: HttpRequest, query: str):
+async def getFile(request: Request, query: str):
     file_path = f"{sys.argv[2]}/{query}"
-    print(file_path)
-    try: 
-        with open(file_path, 'r') as file:
-            data = file.read()
+    try:
+        async with AsyncFileManager(file_path, "r") as file:
+            data = await file.read()
     except Exception as e:
-        return Response(
-            status=status.NOT_FOUND,
-            data=str(e)
-            )
+        return Response(status=Status.NOT_FOUND, data=str(e))
+    return Response(content_type=ResponseType.FILE, data=data)
+
+@router.post(path="/files/{query}")
+async def createFile(request: Request, query: str):
+    file_path = f"{sys.argv[2]}/{query}"
+    try:
+        async with AsyncFileManager(file_path, "w") as file:
+            await file.write(request.body)
+    except Exception as e:
+        return Response(status=Status.NOT_FOUND, data=str(e))
     return Response(
         content_type=ResponseType.FILE,
-        data=data
+        status=Status.CREATED,
+        data=query
     )

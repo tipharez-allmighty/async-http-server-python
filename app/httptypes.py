@@ -1,9 +1,6 @@
 from _collections_abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Literal
-from app.status import status
-
 
 class HttpMethod(Enum):
     GET = "GET"
@@ -12,10 +9,11 @@ class HttpMethod(Enum):
     DELETE = "DELETE"
     PATCH = "PATCH"
 
+
 class ResponseType(Enum):
     PLAIN_TEXT = "text/plain"
     FILE = "application/octet-stream"
-    
+
 @dataclass
 class MethodHandler:
     method: HttpMethod
@@ -27,26 +25,23 @@ class MethodHandler:
         if not isinstance(self.method, HttpMethod):
             raise ValueError(f"{self.method} is not valid http method")
 
-
 @dataclass(frozen=True)
-class Path:
-    path: str
-
-    def __post_init__(self):
-        if not isinstance(self.path, str):
-            raise ValueError(f"{self.path} should be a string")
+class Status:
+    OK: str = field(default="HTTP/1.1 200 OK\r\n", init=False)
+    CREATED: str = field(default="HTTP/1.1 201 Created\r\n", init=False)
+    NOT_FOUND: str = field(default="HTTP/1.1 404 Not Found\r\n", init=False)
+    BAD_REQUEST: str = field(default="HTTP/1.1 400 Bad Request\r\n", init=False)
 
 
 @dataclass
 class Response:
-    status: str = status.OK
+    status: str = Status.OK
     data: str = ""
     headers: str = ""
     content_type: ResponseType = ResponseType.PLAIN_TEXT
+
     def __post_init__(self):
         self._encoded_data = bytes()
-        # if isinstance(self.data, str):
-        #     content_type = "text/plain"
         self._encoded_data = self.data.encode("utf-8")
         self.headers = (
             f"Content-type: {self.content_type.value + "\r\n"}"

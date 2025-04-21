@@ -1,7 +1,7 @@
 import asyncio
 from app.routes import router
 from app.context_managers import AsyncRequestManager
-from app.httpparser import HttpRequest
+from app.httpparser import Request
 
 
 async def handleRequest(reader, writer):
@@ -10,7 +10,7 @@ async def handleRequest(reader, writer):
             recieved_bytes = await arm.reader.read(1024)
             if not recieved_bytes:
                 break
-            request = HttpRequest(recieved_bytes=recieved_bytes)
+            request = Request(recieved_bytes=recieved_bytes)
             response = await router.resolve(request)
             arm.writer.write(response)
             await arm.writer.drain()

@@ -1,8 +1,7 @@
 from queue import Queue
 
-from app.httptypes import MethodHandler, HttpMethod, Response
-from app.httpparser import HttpRequest
-from app.status import status
+from app.httptypes import MethodHandler, HttpMethod, Status, Response
+from app.httpparser import Request
 
 
 class Router:
@@ -23,7 +22,7 @@ class Router:
         return queue
 
     async def _routerLookup(
-        self, path: str, parsed_request: HttpRequest, parameter: str | None = None
+        self, path: str, parsed_request: Request, parameter: str | None = None
     ):
         if path in self.__route_map:
             for method_handler in self.__route_map[path]:
@@ -34,7 +33,7 @@ class Router:
                         else await method_handler.handler(parsed_request, parameter)
                     )
 
-    async def resolve(self, parsed_request: HttpRequest):
+    async def resolve(self, parsed_request: Request):
         response = await self._routerLookup(
             path=parsed_request.path,
             parsed_request=parsed_request,
@@ -47,21 +46,24 @@ class Router:
                 parsed_request=parsed_request,
                 parameter=current_parameter,
             )
-        response = (
-            response if response else
-            Response(
-                status=status.NOT_FOUND
-            )
-        )
+        response = response if response else Response(status=Status.NOT_FOUND)
         return response.buildBytes()
-
-    def get(self, path: str):
+    
+    def _route(self, path: str, method: HttpMethod):
         def wrapper(handler: callable):
             if self.__route_map.get(path):
                 self.__route_map[path].append(
-                    MethodHandler(method=HttpMethod.GET, handler=handler)
+                    MethodHandler(method=method, handler=handler)
                 )
             else:
-                self.__route_map[path] = [MethodHandler(method=HttpMethod.GET, handler=handler)]
+                self.__route_map[path] = [
+                    MethodHandler(method=method, handler=handler)
+                ]
 
         return wrapper
+
+    def get(self, path: str):
+        return self._route(path=path, method=HttpMethod.GET)
+    
+    def post(self, path: str):
+        return self._route(path=path, method=HttpMethod.POST)
