@@ -38,17 +38,21 @@ class Response:
     status: str = Status.OK
     data: str = ""
     headers: str = ""
+    encoding: str | None = None
     content_type: ResponseType = ResponseType.PLAIN_TEXT
 
-    def __post_init__(self):
-        self._encoded_data = bytes()
-        self._encoded_data = self.data.encode("utf-8")
-        self.headers = (
-            f"Content-type: {self.content_type.value + "\r\n"}"
-            f"Content-Length: {len(self._encoded_data)}" + "\r\n"
-        )
-
     def buildBytes(self):
+        encoded_data = bytes()
+        encoded_data = self.data.encode("utf-8")
+        encoding_line = (
+            f"Content-Encoding: {self.encoding}" + "\r\n"
+            if self.encoding == 'gzip' else ""
+            )
+        
+        self.headers = encoding_line + self.headers + (
+            f"Content-type: {self.content_type.value + "\r\n"}"
+            f"Content-Length: {len(encoded_data)}" + "\r\n"
+        )
         return (self.status + self.headers + "\r\n").encode(
             "utf-8"
-        ) + self._encoded_data
+        ) + encoded_data

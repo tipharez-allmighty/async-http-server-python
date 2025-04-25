@@ -1,4 +1,3 @@
-import os
 import sys
 
 from app.httptypes import Response, ResponseType, Status
@@ -19,12 +18,14 @@ async def getUserAgent(reqeust: Request):
     if reqeust.headers.get("user-agent"):
         return Response(data=reqeust.headers["user-agent"])
     else:
-        return Response(status=status.NOT_FOUND)
+        return Response(status=Status.NOT_FOUND)
 
 
 @router.get(path="/echo/{query}")
-async def getAbc(reqeust: Request, query: str):
-    return Response(data=query)
+async def getAbc(reqeust: Request, query: str):    
+    return Response(
+        data=query
+        )
 
 
 @router.get(path="/files/{query}")

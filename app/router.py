@@ -46,9 +46,21 @@ class Router:
                 parsed_request=parsed_request,
                 parameter=current_parameter,
             )
-        response = response if response else Response(status=Status.NOT_FOUND)
-        return response.buildBytes()
+        encoding = self._getEncoding(parsed_request)
+        # response = response if response else Response(status=Status.NOT_FOUND)
+        return self._formResponse(response, encoding)
     
+    def _getEncoding(self, parsed_request: Request):
+        if encoding := parsed_request.headers.get("accept-encoding"):
+            return encoding
+    
+    def _formResponse(self, response: Response | None, encoding: str):
+        if response:
+            response.encoding = encoding
+        else:
+            response = Response(status=Status.NOT_FOUND)
+        return response.buildBytes()
+        
     def _route(self, path: str, method: HttpMethod):
         def wrapper(handler: callable):
             if self.__route_map.get(path):
