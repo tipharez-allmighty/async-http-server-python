@@ -1,6 +1,6 @@
 from queue import Queue
 
-from app.httptypes import MethodHandler, HttpMethod, Status, Response
+from app.types import MethodHandler, HttpMethod, Status, Response
 from app.httpparser import Request
 
 
@@ -11,6 +11,23 @@ class Router:
     @property
     def route_map(self):
         return self.__route_map
+
+    def _route(self, path: str, method: HttpMethod):
+        def wrapper(handler: callable):
+            if self.__route_map.get(path):
+                self.__route_map[path].append(
+                    MethodHandler(method=method, handler=handler)
+                )
+            else:
+                self.__route_map[path] = [MethodHandler(method=method, handler=handler)]
+
+        return wrapper
+
+    def get(self, path: str):
+        return self._route(path=path, method=HttpMethod.GET)
+
+    def post(self, path: str):
+        return self._route(path=path, method=HttpMethod.POST)
 
     def _pathQueue(self, path: str):
         queue = Queue()
@@ -49,33 +66,15 @@ class Router:
         encoding = self._getEncoding(parsed_request)
         # response = response if response else Response(status=Status.NOT_FOUND)
         return self._formResponse(response, encoding)
-    
+
     def _getEncoding(self, parsed_request: Request):
         if encoding := parsed_request.headers.get("accept-encoding"):
             return encoding
-    
+
     def _formResponse(self, response: Response | None, encoding: str):
         if response:
             response.encoding = encoding
+            response.addEncoding()
         else:
             response = Response(status=Status.NOT_FOUND)
         return response.buildBytes()
-        
-    def _route(self, path: str, method: HttpMethod):
-        def wrapper(handler: callable):
-            if self.__route_map.get(path):
-                self.__route_map[path].append(
-                    MethodHandler(method=method, handler=handler)
-                )
-            else:
-                self.__route_map[path] = [
-                    MethodHandler(method=method, handler=handler)
-                ]
-
-        return wrapper
-
-    def get(self, path: str):
-        return self._route(path=path, method=HttpMethod.GET)
-    
-    def post(self, path: str):
-        return self._route(path=path, method=HttpMethod.POST)

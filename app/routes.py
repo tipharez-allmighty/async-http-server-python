@@ -1,6 +1,6 @@
 import sys
 
-from app.httptypes import Response, ResponseType, Status
+from app.types import Response, ResponseType, Status
 from app.httpparser import Request
 from app.router import Router
 from app.context_managers import AsyncFileManager
@@ -22,10 +22,8 @@ async def getUserAgent(reqeust: Request):
 
 
 @router.get(path="/echo/{query}")
-async def getAbc(reqeust: Request, query: str):    
-    return Response(
-        data=query
-        )
+async def getAbc(reqeust: Request, query: str):
+    return Response(data=query)
 
 
 @router.get(path="/files/{query}")
@@ -38,6 +36,7 @@ async def getFile(request: Request, query: str):
         return Response(status=Status.NOT_FOUND, data=str(e))
     return Response(content_type=ResponseType.FILE, data=data)
 
+
 @router.post(path="/files/{query}")
 async def createFile(request: Request, query: str):
     file_path = f"{sys.argv[2]}/{query}"
@@ -46,8 +45,4 @@ async def createFile(request: Request, query: str):
             await file.write(request.body)
     except Exception as e:
         return Response(status=Status.NOT_FOUND, data=str(e))
-    return Response(
-        content_type=ResponseType.FILE,
-        status=Status.CREATED,
-        data=query
-    )
+    return Response(content_type=ResponseType.FILE, status=Status.CREATED, data=query)
