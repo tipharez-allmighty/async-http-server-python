@@ -4,6 +4,7 @@ from enum import Enum
 
 import gzip
 
+
 class HttpMethod(Enum):
     GET = "GET"
     POST = "POST"
@@ -43,6 +44,21 @@ class Status:
 
 @dataclass
 class Response:
+    """
+    Represents an HTTP response with status, headers, content type, and data.
+
+    Attributes:
+        status (str): The HTTP status line (e.g., "200 OK").
+        data (str): The response body/content.
+        headers (str): Response headers.
+        encoding (str): The encoding type (e.g., gzip).
+        content_type (ResponseType): The content type (e.g., text, file).
+
+    Methods:
+        addEncoding: Adds encoding (e.g., gzip) and compresses data.
+        buildBytes: Constructs the HTTP response as bytes.
+    """
+
     status: str = Status.OK
     data: str = ""
     headers: str = ""

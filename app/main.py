@@ -5,6 +5,18 @@ from app.httpparser import Request
 
 
 async def handleRequest(reader, writer):
+    """
+    Handle a single client TCP connection.
+
+    - Reads incoming data from the client.
+    - Parses it into a Request object.
+    - Resolves the Request into a Response using the router.
+    - Writes the Response back to the client.
+    - Continues processing multiple requests on the same connection unless:
+        - No data is received (client disconnected), or
+        - 'Connection: close' header is found in the request.
+    - Closes the connection when finished.
+    """
     async with AsyncRequestManager(reader, writer) as arm:
         while True:
             recieved_bytes = await arm.reader.read(1024)
@@ -15,10 +27,19 @@ async def handleRequest(reader, writer):
             arm.writer.write(response)
             await arm.writer.drain()
             if request.headers.get("connection", "").lower() == "close":
+                print("Connection is closed")
                 break
 
 
 async def main():
+    """
+    Start the TCP server.
+
+    - Binds the server to localhost:4221.
+    - Listens for incoming client connections.
+    - Dispatches each client connection to handleRequest().
+    - Keeps running until manually interrupted (e.g., Ctrl+C).
+    """
     print("Logs will appear here!")
     server = await asyncio.start_server(handleRequest, "localhost", 4221)
     async with server:

@@ -1,3 +1,14 @@
+# This code demonstrates how routes work with the `Router` class.
+# It defines HTTP endpoints with different methods (GET and POST) to handle requests.
+
+# - The `getHome` route responds with a simple default response.
+# - The `getUserAgent` route checks for the "user-agent" header and responds with its value or a "Not Found" status.
+# - The `getAbc` route returns the value of the query parameter.
+# - The `getFile` route reads and returns a file's contents, or responds with an error if the file is not found.
+# - The `createFile` route writes data to a file and responds with the created file's name or an error message.
+
+# This showcases how paths, HTTP methods, and dynamic parameters can be handled by the router.
+
 import sys
 
 from app.types import Response, ResponseType, Status
