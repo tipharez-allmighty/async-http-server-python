@@ -79,3 +79,8 @@ This project implements a simple asynchronous HTTP server that can handle GET an
    curl -v -H "Accept-Encoding: gzip" http://localhost:4221/echo/abc | hexdump -C
    ```
 * This request asks for the response to be compressed using gzip encoding and uses hexdump to display the binary output. You can observe the compressed response here.
+
+* To test the speed and asynchronous behavior of the server, it is recommened to use **[oha](https://github.com/hatoo/oha)**, a high-performance HTTP load testing tool.
+   ```bash
+   oha  http://localhost:4221/user-agents
+   ```
