@@ -2,6 +2,7 @@ from _collections_abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 
+import gzip
 
 class HttpMethod(Enum):
     GET = "GET"
@@ -49,13 +50,7 @@ class Response:
     content_type: ResponseType = ResponseType.PLAIN_TEXT
 
     def __post_init__(self):
-        self._encoded_data = bytes()
         self._encoded_data = self.data.encode("utf-8")
-
-        self.headers = self.headers + (
-            f"Content-type: {self.content_type.value + "\r\n"}"
-            f"Content-Length: {len(self._encoded_data)}" + "\r\n"
-        )
 
     def addEncoding(self):
         if self.encoding:
@@ -69,8 +64,13 @@ class Response:
             if encoding:
                 encoding_line = f"Content-Encoding: {encoding[0]}" + "\r\n"
                 self.headers = encoding_line + self.headers
+                self._encoded_data = gzip.compress(self._encoded_data)
 
     def buildBytes(self):
+        self.headers = self.headers + (
+            f"Content-type: {self.content_type.value + "\r\n"}"
+            f"Content-Length: {len(self._encoded_data)}" + "\r\n"
+        )
         return (self.status + self.headers + "\r\n").encode(
             "utf-8"
         ) + self._encoded_data

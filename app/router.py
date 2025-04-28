@@ -64,7 +64,6 @@ class Router:
                 parameter=current_parameter,
             )
         encoding = self._getEncoding(parsed_request)
-        # response = response if response else Response(status=Status.NOT_FOUND)
         return self._formResponse(response, encoding)
 
     def _getEncoding(self, parsed_request: Request):
