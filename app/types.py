@@ -46,7 +46,7 @@ class Response:
     status: str = Status.OK
     data: str = ""
     headers: str = ""
-    encoding: str | None = None
+    encoding: str = ""
     content_type: ResponseType = ResponseType.PLAIN_TEXT
 
     def __post_init__(self):

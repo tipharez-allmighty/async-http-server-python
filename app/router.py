@@ -38,6 +38,27 @@ class Router:
             queue.put((query_path, parameter))
         return queue
 
+    @staticmethod
+    def _getEncoding(parsed_request: Request):
+        if encoding := parsed_request.headers.get("accept-encoding", ""):
+            return encoding
+
+    @staticmethod
+    def _getConnection(paresed_request: Request):
+        if conn := paresed_request.headers.get('connection', ""):
+            conn = f"Connection: {conn + "\r\n"}"
+        return conn
+
+    def _formResponse(self, parsed_request: Request,
+                      response: Response | None):
+        if response:
+            response.encoding = self._getEncoding(parsed_request)
+            response.headers += self._getConnection(parsed_request)
+            response.addEncoding()
+        else:
+            response = Response(status=Status.NOT_FOUND)
+        return response.buildBytes()
+        
     async def _routerLookup(
         self, path: str, parsed_request: Request, parameter: str | None = None
     ):
@@ -63,17 +84,8 @@ class Router:
                 parsed_request=parsed_request,
                 parameter=current_parameter,
             )
-        encoding = self._getEncoding(parsed_request)
-        return self._formResponse(response, encoding)
+        return self._formResponse(parsed_request, response)
 
-    def _getEncoding(self, parsed_request: Request):
-        if encoding := parsed_request.headers.get("accept-encoding"):
-            return encoding
 
-    def _formResponse(self, response: Response | None, encoding: str):
-        if response:
-            response.encoding = encoding
-            response.addEncoding()
-        else:
-            response = Response(status=Status.NOT_FOUND)
-        return response.buildBytes()
+
+

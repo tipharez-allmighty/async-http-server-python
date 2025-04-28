@@ -14,6 +14,8 @@ async def handleRequest(reader, writer):
             response = await router.resolve(request)
             arm.writer.write(response)
             await arm.writer.drain()
+            if request.headers.get("connection", ""):
+                break
 
 
 async def main():
