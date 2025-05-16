@@ -4,7 +4,7 @@ from app.context_managers import AsyncRequestManager
 from app.httpparser import Request
 
 
-async def handleRequest(reader, writer):
+async def hande_request(reader, writer):
     """
     Handle a single client TCP connection.
 
@@ -37,11 +37,11 @@ async def main():
 
     - Binds the server to localhost:4221.
     - Listens for incoming client connections.
-    - Dispatches each client connection to handleRequest().
+    - Dispatches each client connection to hande_request().
     - Keeps running until manually interrupted (e.g., Ctrl+C).
     """
     print("Logs will appear here!")
-    server = await asyncio.start_server(handleRequest, "localhost", 4221)
+    server = await asyncio.start_server(hande_request, "localhost", 4221)
     async with server:
         await server.serve_forever()
 

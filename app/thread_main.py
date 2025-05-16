@@ -5,21 +5,21 @@ from app.routes import router
 from app.context_managers import RequestManager
 
 
-def handleRequest(conn):
+def handle_request(conn):
     print(f"Handling request in thread: {threading.current_thread().name}", flush=True)
     with RequestManager(conn) as rq:
         response = router.resolve(rq.request)
         rq.connection.sendall(response)
 
 
-def threadExecution(port=4221):
+def thread_execution(port=4221):
     server_socket = socket.create_server(("localhost", port), reuse_port=True)
     print(f"Server is running on port: {port}")
     try:
         with ThreadPoolExecutor(max_workers=8) as executor:
             while True:
                 conn, addr = server_socket.accept()
-                executor.submit(handleRequest, conn)
+                executor.submit(handle_request, conn)
     except KeyboardInterrupt:
         print("\nServer is shutting down")
     finally:
@@ -29,7 +29,7 @@ def threadExecution(port=4221):
 
 def main():
     print("Logs from your program will appear here!")
-    threadExecution()
+    thread_execution()
 
 
 if __name__ == "__main__":

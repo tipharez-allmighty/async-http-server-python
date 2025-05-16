@@ -55,8 +55,8 @@ class Response:
         content_type (ResponseType): The content type (e.g., text, file).
 
     Methods:
-        addEncoding: Adds encoding (e.g., gzip) and compresses data.
-        buildBytes: Constructs the HTTP response as bytes.
+        add_encoding: Adds encoding (e.g., gzip) and compresses data.
+        build_bytes: Constructs the HTTP response as bytes.
     """
 
     status: str = Status.OK
@@ -68,7 +68,7 @@ class Response:
     def __post_init__(self):
         self._encoded_data = self.data.encode("utf-8")
 
-    def addEncoding(self):
+    def add_encoding(self):
         if self.encoding:
             encoding_list = self.encoding.split(",")
             encoding = [
@@ -82,7 +82,7 @@ class Response:
                 self.headers = encoding_line + self.headers
                 self._encoded_data = gzip.compress(self._encoded_data)
 
-    def buildBytes(self):
+    def build_bytes(self):
         self.headers = self.headers + (
             f"Content-type: {self.content_type.value + "\r\n"}"
             f"Content-Length: {len(self._encoded_data)}" + "\r\n"

@@ -82,5 +82,5 @@ This project implements a simple asynchronous HTTP server that can handle GET an
 
 * To test the speed and asynchronous behavior of the server, it is recommened to use **[oha](https://github.com/hatoo/oha)**, a high-performance HTTP load testing tool.
    ```bash
-   oha  http://localhost:4221/user-agents
+   oha http://localhost:4221/user-agent
    ```

@@ -52,7 +52,7 @@ class Router:
         """
         return self._route(path=path, method=HttpMethod.POST)
 
-    def _pathQueue(self, path: str):
+    def _path_queue(self, path: str):
         """
         Create a queue of potential routes by breaking down the path into segments.
 
@@ -73,26 +73,26 @@ class Router:
         return queue
 
     @staticmethod
-    def _getEncoding(parsed_request: Request):
+    def _get_encoding(parsed_request: Request):
         if encoding := parsed_request.headers.get("accept-encoding", ""):
             return encoding
 
     @staticmethod
-    def _getConnection(paresed_request: Request):
+    def _get_connection(paresed_request: Request):
         if conn := paresed_request.headers.get("connection", ""):
-            conn = f"Connection: {conn + "\r\n"}"
+            conn = f"Connection: {conn + '\r\n'}"
         return conn
 
-    def _formResponse(self, parsed_request: Request, response: Response | None):
+    def _form_response(self, parsed_request: Request, response: Response | None):
         if response:
-            response.encoding = self._getEncoding(parsed_request)
-            response.headers += self._getConnection(parsed_request)
-            response.addEncoding()
+            response.encoding = self._get_encoding(parsed_request)
+            response.headers += self._get_connection(parsed_request)
+            response.add_encoding()
         else:
             response = Response(status=Status.NOT_FOUND)
-        return response.buildBytes()
+        return response.build_bytes()
 
-    async def _routerLookup(
+    async def _router_lookup(
         self, path: str, parsed_request: Request, parameter: str | None = None
     ):
         """
@@ -129,16 +129,16 @@ class Router:
         Returns:
             bytes: The formatted response ready to be sent to the client.
         """
-        response = await self._routerLookup(
+        response = await self._router_lookup(
             path=parsed_request.path,
             parsed_request=parsed_request,
         )
-        path_queue = self._pathQueue(path=parsed_request.path)
+        path_queue = self._path_queue(path=parsed_request.path)
         while not response and not path_queue.empty():
             current_path, current_parameter = path_queue.get()
-            response = await self._routerLookup(
+            response = await self._router_lookup(
                 path=current_path,
                 parsed_request=parsed_request,
                 parameter=current_parameter,
             )
-        return self._formResponse(parsed_request, response)
+        return self._form_response(parsed_request, response)
